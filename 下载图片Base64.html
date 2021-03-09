@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image base64</title>
+</head>
+<body>
+<div tab-index="1">
+<style>
+#get-clipboard {
+  line-height: 20px;
+  padding: 20px;
+  background: green;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+}
+</style>
+<div id="get-clipboard">点击此区域读取剪切板的数据（复制的数据）</div>
+<script>
+const isFile = (v) => Object.prototype.toString.call(v) === '[object Blob]';
+const downloadText = (text, filename) => {
+  const dataURL = `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`;
+  const a = document.createElement('a');
+  a.href = dataURL;
+  a.setAttribute('download', filename || `s_${+new Date()}.md`);
+  a.innerHTML = 'downloading...';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  setTimeout(() => {
+    a.click();
+    document.body.removeChild(a);
+  }, 66);
+}
+const getClipboardData = (e) => new Promise(async resolve => {
+  const item_list = await navigator.clipboard.read();
+  const [clipboardItem] = item_list || [];
+  if (clipboardItem && clipboardItem.types && clipboardItem.types.length) {
+    const latestType = clipboardItem.types[clipboardItem.types.length - 1];
+    const latest = await clipboardItem.getType(latestType);
+    const isImage = isFile(latest) && latestType.includes('image');
+    if (isImage) {
+      const reader = new FileReader();
+      reader.readAsDataURL(latest);
+      reader.onload = () => downloadText(reader.result, `${Date.now()}.txt`);
+    } else {
+      alert(`你剪切板里的数据格式为：${latestType}`);
+    }
+  }
+});
+
+document.querySelector('#get-clipboard').addEventListener('click', getClipboardData);
+</script>
+</body>
+</html>

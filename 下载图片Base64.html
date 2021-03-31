@@ -16,8 +16,37 @@
   text-align: center;
   cursor: pointer;
 }
+.btn {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  justify-content: center;
+}
+.btn span {
+  flex: 1;
+  font-size: 20px;
+  background-color: red;
+  color: #fff;
+  text-align: center;
+  margin: 20px;
+}
+.img {
+  text-align: center;
+}
+.img img{
+  max-width: 80%;
+  margin: 0 auto;
+  margin-top: 20px;
+}
 </style>
 <div id="get-clipboard">点击此区域读取剪切板的数据（复制的数据）</div>
+<div class="btn">
+  <span onclick="downloadBase64()">下载base64</span>
+  <span onclick="downloadImage()">下载图片</span>
+</div>
+<div class="img">
+
+</div>
 <script>
 const isFile = (v) => Object.prototype.toString.call(v) === '[object Blob]';
 const downloadText = (text, filename) => {
@@ -32,7 +61,22 @@ const downloadText = (text, filename) => {
     a.click();
     document.body.removeChild(a);
   }, 66);
-}
+};
+
+const downloadImageFromBase64 = (text, filename) => {
+  const dataURL = `${text}`;
+  console.log(dataURL);
+  const a = document.createElement('a');
+  a.href = dataURL;
+  a.setAttribute('download', filename || `s_${+new Date()}.png`);
+  a.innerHTML = 'downloading...';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  setTimeout(() => {
+    a.click();
+    document.body.removeChild(a);
+  }, 66);
+};
 const getClipboardData = (e) => new Promise(async resolve => {
   const item_list = await navigator.clipboard.read();
   const [clipboardItem] = item_list || [];
@@ -43,7 +87,15 @@ const getClipboardData = (e) => new Promise(async resolve => {
     if (isImage) {
       const reader = new FileReader();
       reader.readAsDataURL(latest);
-      reader.onload = () => downloadText(reader.result, `${Date.now()}.txt`);
+      reader.onload = () => {
+        document.querySelector('.img').innerHTML = `<img src="${reader.result}" />`;
+        window.downloadBase64 = () => {
+          downloadText(reader.result, `${Date.now()}.txt`);
+        };
+        window.downloadImage = () => {
+          downloadImageFromBase64(reader.result);
+        };
+      };
     } else {
       alert(`你剪切板里的数据格式为：${latestType}`);
     }

@@ -87,7 +87,7 @@ const getClipboardData = (e) => new Promise(async resolve => {
       reader.readAsDataURL(latest);
       reader.onload = () => {
         if (!cache.includes(reader.result)) {
-          document.querySelector('.img').innerHTML += `<img src="${reader.result}" />`;
+          document.querySelector('.img').innerHTML = `<img src="${reader.result}" />` + document.querySelector('.img').innerHTML;
           cache.push(reader.result);
         }
         window.downloadBase64 = () => {

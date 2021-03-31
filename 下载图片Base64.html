@@ -3,35 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Image base64</title>
+  <title>识别简洁版的图片</title>
 </head>
 <body>
 <div tab-index="1">
 <style>
-#get-clipboard {
-  line-height: 20px;
-  padding: 20px;
-  background: green;
-  color: #fff;
-  text-align: center;
-  cursor: pointer;
-}
 .btn {
   display: flex;
   align-items: center;
-  height: 30px;
+  height: 50px;
   justify-content: center;
 }
 .btn span {
-  flex: 1;
+  height: 30px;
+  border-radius: 5px;
+  cursor: pointer;
   font-size: 20px;
   background-color: red;
   color: #fff;
   text-align: center;
-  margin: 20px;
+  margin: 0 20px;
+  display: inline-flex;
+  align-content: center;
+  justify-content: center;
+  padding: 5px 10px;
 }
 .img {
   text-align: center;
+  border: dashed 3px #ccc;
+  min-height: 700px;
 }
 .img img{
   max-width: 80%;
@@ -39,14 +39,12 @@
   margin-top: 20px;
 }
 </style>
-<div id="get-clipboard">点击此区域读取剪切板的数据（复制的数据）</div>
 <div class="btn">
+  <span id="get-clipboard">点击此区域读取剪切板的图片，或者在任意区域粘贴图片</span>
   <span onclick="downloadBase64()">下载base64</span>
   <span onclick="downloadImage()">下载图片</span>
 </div>
-<div class="img">
-
-</div>
+<div class="img"></div>
 <script>
 const isFile = (v) => Object.prototype.toString.call(v) === '[object Blob]';
 const downloadText = (text, filename) => {
@@ -65,7 +63,6 @@ const downloadText = (text, filename) => {
 
 const downloadImageFromBase64 = (text, filename) => {
   const dataURL = `${text}`;
-  console.log(dataURL);
   const a = document.createElement('a');
   a.href = dataURL;
   a.setAttribute('download', filename || `s_${+new Date()}.png`);
@@ -77,6 +74,7 @@ const downloadImageFromBase64 = (text, filename) => {
     document.body.removeChild(a);
   }, 66);
 };
+const cache = [];
 const getClipboardData = (e) => new Promise(async resolve => {
   const item_list = await navigator.clipboard.read();
   const [clipboardItem] = item_list || [];
@@ -88,21 +86,28 @@ const getClipboardData = (e) => new Promise(async resolve => {
       const reader = new FileReader();
       reader.readAsDataURL(latest);
       reader.onload = () => {
-        document.querySelector('.img').innerHTML = `<img src="${reader.result}" />`;
+        if (!cache.includes(reader.result)) {
+          document.querySelector('.img').innerHTML += `<img src="${reader.result}" />`;
+          cache.push(reader.result);
+        }
         window.downloadBase64 = () => {
           downloadText(reader.result, `${Date.now()}.txt`);
         };
         window.downloadImage = () => {
           downloadImageFromBase64(reader.result);
         };
+        document.querySelector('.btn').style.display = '';
       };
     } else {
-      alert(`你剪切板里的数据格式为：${latestType}`);
+      // alert(`你剪切板里的数据格式为：${latestType}`);
     }
   }
 });
 
 document.querySelector('#get-clipboard').addEventListener('click', getClipboardData);
+document.body.addEventListener('paste', getClipboardData);
+document.querySelector('.img').addEventListener('click', getClipboardData);
+
 </script>
 </body>
 </html>
